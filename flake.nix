@@ -84,6 +84,7 @@
                 echo $GOOGLE_SERVICES_JSON >app/google-services.json
 
                 export ANDROID_HOME="${androidComposition pkgs}/libexec/android-sdk/"
+                export ANDROID_SDK_ROOT="${androidComposition pkgs}/libexec/android-sdk/"
                 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk-bundle/"
                 export JAVA_HOME="${pkgs.jdk21}"
 
