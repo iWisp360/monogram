@@ -70,6 +70,35 @@
             JAVA_HOME = "${pkgs.jdk21}";
             ANDROID_HOME = "${androidComposition pkgs}/libexec/android-sdk";
           };
+
+          apps = {
+            buildRelease = {
+              type = "app";
+              program = "${pkgs.writeShellScriptBin "buildRelease" ''
+                if [ -z $LOCAL_PROPERTIES ] || [ -z $GOOGLE_SERVICES_JSON ]; then
+                  echo "LOCAL_PROPERTIES and GOOGLE_SERVICES_JSON environment variables must be set"
+                fi
+
+                echo $LOCAL_PROPERTIES >local.properties
+                echo $GOOGLE_SERVICES_JSON >app/google-services.json
+
+                export ANDROID_HOME="${androidComposition pkgs}/libexec/android-sdk/"
+                export ANDROID_NDK_HOME="$ANDROID_HOME/ndk-bundle/"
+                export JAVA_HOME="${pkgs.jdk21}"
+
+                cd presentation/src/main/cpp/
+                chmod +x build.sh
+                sed -e "1,2s|/bin/bash|${pkgs.bash}/bin/bash|g" build.sh >build.sh
+                if ! ${pkgs.bash}/bin/bash --verbose build.sh; then
+                  echo "libvpx build failed"
+                  exit 1
+                fi
+
+                cd ../../../..
+                ./gradlew assembleRelease --info
+              ''}/bin/buildRelease";
+            };
+          };
         };
     };
 }
