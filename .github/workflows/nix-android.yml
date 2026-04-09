@@ -12,6 +12,13 @@ jobs:
       env:
         github_secret: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Check Necessary environment variables presence
+      run: |
+        if [ -z "$LOCAL_PROPERTIES" ] || [ -z "$GOOGLE_SERVICES_JSON" ]; then
+          echo "You may want to add LOCAL_PROPERTIES and GOOGLE_SERVICES_JSON environment variables to your secrets"
+          exit 1
+        fi
+
     - name: Build Task
       run: nix --experimental-features "nix-command flakes" run .#buildRelease
     
