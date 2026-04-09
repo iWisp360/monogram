@@ -77,6 +77,7 @@
               program = "${pkgs.writeShellScriptBin "buildRelease" ''
                 if [ -z $LOCAL_PROPERTIES ] || [ -z $GOOGLE_SERVICES_JSON ]; then
                   echo "LOCAL_PROPERTIES and GOOGLE_SERVICES_JSON environment variables must be set"
+                  exit 1
                 fi
 
                 echo $LOCAL_PROPERTIES >local.properties
