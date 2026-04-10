@@ -20,10 +20,12 @@
             (pkgs.androidenv.composeAndroidPackages {
               platformVersions = [
                 "35"
+                "36"
               ];
 
               buildToolsVersions = [
                 "35.0.0"
+                "36.0.0"
               ];
 
               cmakeVersions = [
@@ -75,7 +77,7 @@
             buildRelease = {
               type = "app";
               program = "${pkgs.writeShellScriptBin "buildRelease" ''
-                if [ -z $LOCAL_PROPERTIES ] || [ -z $GOOGLE_SERVICES_JSON ]; then
+                if [ -z "$LOCAL_PROPERTIES" ] || [ -z "$GOOGLE_SERVICES_JSON" ]; then
                   echo "LOCAL_PROPERTIES and GOOGLE_SERVICES_JSON environment variables must be set"
                   exit 1
                 fi
@@ -89,12 +91,15 @@
                 export JAVA_HOME="${pkgs.jdk21}"
 
                 cd presentation/src/main/cpp/
-                chmod +x build.sh
-                sed -e "1,2s|/bin/bash|${pkgs.bash}/bin/bash|g" build.sh >build.sh
-                if ! ${pkgs.bash}/bin/bash --verbose build.sh; then
+                sed -e "s|#!/bin/bash|#!${pkgs.bash}/bin/bash|g" \
+                  -e "s|make clean|${pkgs.gnumake}/bin/make clean|g" \
+                  -e "s|make -j|${pkgs.gnumake}/bin/make -j|g" build.sh >new_build.sh
+                chmod +x new_build.sh
+                if ! ${pkgs.bash}/bin/bash new_build.sh; then
                   echo "libvpx build failed"
                   exit 1
                 fi
+                rm new_build.sh
 
                 cd ../../../..
                 ./gradlew assembleRelease --info
