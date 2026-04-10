@@ -82,6 +82,10 @@
                   exit 1
                 fi
 
+                if ! ${pkgs.git}/bin/git submodule update --init --recursive; then
+                  echo "failed getting submodules"
+                fi
+
                 echo $LOCAL_PROPERTIES >local.properties
                 echo $GOOGLE_SERVICES_JSON >app/google-services.json
 
