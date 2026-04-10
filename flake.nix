@@ -15,6 +15,7 @@
       perSystem =
         { pkgs, system, ... }:
         let
+          actualBuildTools = "36.0.0";
           androidComposition =
             pkgs:
             (pkgs.androidenv.composeAndroidPackages {
@@ -25,7 +26,7 @@
 
               buildToolsVersions = [
                 "35.0.0"
-                "36.0.0"
+                actualBuildTools
               ];
 
               cmakeVersions = [
@@ -92,21 +93,24 @@
                 export ANDROID_HOME="${androidComposition pkgs}/libexec/android-sdk/"
                 export ANDROID_SDK_ROOT="${androidComposition pkgs}/libexec/android-sdk/"
                 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk-bundle/"
+                export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidComposition pkgs}/libexec/android-sdk/build-tools/${actualBuildTools}/aapt2"
                 export JAVA_HOME="${pkgs.jdk21}"
 
                 cd presentation/src/main/cpp/
-                sed -e "s|#!/bin/bash|#!${pkgs.bash}/bin/bash|g" \
-                  -e "s|make clean|${pkgs.gnumake}/bin/make clean|g" \
-                  -e "s|make -j|${pkgs.gnumake}/bin/make -j|g" build.sh >new_build.sh
-                chmod +x new_build.sh
-                if ! ${pkgs.bash}/bin/bash new_build.sh; then
-                  echo "libvpx build failed"
-                  exit 1
-                fi
-                rm new_build.sh
+                if ! [ -d libvpx_build ]; then
+                  sed -e "s|#!/bin/bash|#!${pkgs.bash}/bin/bash|g" \
+                    -e "s|make clean|${pkgs.gnumake}/bin/make clean|g" \
+                    -e "s|make -j|${pkgs.gnumake}/bin/make -j|g" build.sh >new_build.sh
+                  chmod +x new_build.sh
+                  if ! ${pkgs.bash}/bin/bash new_build.sh; then
+                    echo "libvpx build failed"
+                    exit 1
+                  fi
+                  rm new_build.sh
+                fi 
 
                 cd ../../../..
-                ./gradlew assembleRelease --info
+                ./gradlew assembleRelease
               ''}/bin/buildRelease";
             };
           };
